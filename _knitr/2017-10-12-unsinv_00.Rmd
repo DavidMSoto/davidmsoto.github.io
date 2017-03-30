@@ -1,0 +1,36 @@
+---
+layout: splash
+title: "sins in London"
+author: "David M soto (davidmontesoto@gmail.com)"
+date: "oct 17, 2016"
+description: "london experiment."
+category: Sample-Posts
+tags: [sample post, code, highlighting]
+comments: true
+share: true
+
+
+header:
+  image: /assets/images/truedetective.jpg
+
+
+---
+
+
+## crime figures revealed (metropolitan police)
+
+provided by:  [here](https://data.police.uk/data/)
+
+
+
+```{r, tidy=T}
+library(metricsgraphics)
+
+plots <- lapply(1:4, function(x) {
+  mjs_plot(rbeta(1000, x, x), width = 300, height = 300, linked = TRUE) %>%
+    mjs_histogram(bar_margin = 2) %>%
+    mjs_labs(x_label = sprintf("Plot %d", x))
+})
+
+mjs_grid(plots)
+```

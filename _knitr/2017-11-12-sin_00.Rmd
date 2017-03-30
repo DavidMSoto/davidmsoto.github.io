@@ -1,14 +1,19 @@
 ---
-layout: post
+layout: splash
 title: "sins in London"
 author: "David M soto (davidmontesoto@gmail.com)"
 date: "oct 17, 2016"
 description: "london experiment."
 category: Sample-Posts
 tags: [sample post, code, highlighting]
-imagefeature: picture-29.jpg
 comments: true
 share: true
+
+
+header:
+  image: /assets/images/truedetective.jpg
+
+
 ---
 
 
@@ -17,8 +22,7 @@ share: true
 provided by:  [here](https://data.police.uk/data/)
 
 
-
-{% highlight r %}
+```{r, eval=T, message=F, warning=F}
 rm(list = ls())
 
 library(data.table)
@@ -60,88 +64,65 @@ missing.types <- c("NA", "")
 crime.raw <- readData('../input/', "metropolitan_2016.csv",   missing.types,types  )
 
 names(crime.raw) <- c( "CrimeID",  "Month",  "Longitude",  "Latitude", "Location",    "LSOAcode",   "LSOAname",  "Crimetype", "Lastoutcomecategory")
-{% endhighlight %}
+```
     
 
 #data cleaning 
 
 
+```{r, tidy=T}
 
-{% highlight r %}
-row.has.na <- apply(crime.raw, 1, function(x) {
-    any(is.na(x))
-})
-crime.raw.void <- crime.raw[row.has.na, ]
-crime.raw.clean <- crime.raw[!row.has.na, ]
+row.has.na <- apply(crime.raw, 1, function(x){any(is.na(x))})
+crime.raw.void <- crime.raw[row.has.na,]
+crime.raw.clean <- crime.raw[!row.has.na,]
 
 require(Amelia)
-missmap(crime.raw.void, main = "crime.raw.void - Missings Map", col = c("yellow", 
-    "black"), legend = FALSE)
-{% endhighlight %}
+missmap(crime.raw.void, main="crime.raw.void - Missings Map", 
+        col=c("yellow", "black"), legend=FALSE)
 
-![plot of chunk unnamed-chunk-2](/figures/unnamed-chunk-2-1.svg)
-
-{% highlight r %}
 dataclean = function(dataset) {
     
-    
-    dataset <- dataset[-which(dataset$Month == "Month"), ]
-    
+
+    dataset<-dataset[-which(dataset$Month=="Month"), ] 
+
     vars <- c("year", "month")
     dataset <- separate(dataset, Month, into = vars, sep = "-")
     
     return(dataset)
     
-}
+  }
+  
 
+crime.raw.clean = dataclean(crime.raw.clean) # we remove some duplicate headers
 
-crime.raw.clean = dataclean(crime.raw.clean)  # we remove some duplicate headers
-{% endhighlight %}
+```
 
 
 ##density map google 
 
+```{r, tidy=T}
 
-{% highlight r %}
-sDrugs <- crime.raw.clean %>% filter(Crimetype == "Drugs")
+sDrugs <- crime.raw.clean  %>% filter( Crimetype == 'Drugs')
 
 require(ggmap)
 
-area_map_obj = get_map("LONDON ", zoom = 12, maptype = "toner-background", source = "stamen")
-{% endhighlight %}
+area_map_obj = get_map("LONDON ", zoom = 12, maptype = "toner-background",  source = "stamen")
+satellite =get_map("LONDON", zoom = 12,  source = "google", maptype = "satellite")
 
 
-
-{% highlight text %}
-## Error in download.file(url, destfile = tmp, quiet = !messaging, mode = "wb"): cannot open URL 'http://maps.googleapis.com/maps/api/staticmap?center=LONDON+&zoom=12&size=640x640&scale=2&maptype=terrain&sensor=false'
-{% endhighlight %}
-
-
-
-{% highlight r %}
-satellite = get_map("LONDON", zoom = 12, source = "google", maptype = "satellite")
-
-
-mapImageData2 <- get_map("LONDON", color = "color", source = "google", maptype = "terrain", 
+mapImageData2 <- get_map("LONDON",
+    color = "color",
+    source = "google",
+    maptype = "terrain",
     zoom = 12)
-{% endhighlight %}
+
+d = sDrugs %>%     mutate(lon = Longitude, lat = Latitude)
 
 
-
-{% highlight text %}
-## Error in download.file(url, destfile = tmp, quiet = !messaging, mode = "wb"): cannot open URL 'http://maps.googleapis.com/maps/api/staticmap?center=LONDON&zoom=12&size=640x640&scale=2&maptype=terrain&language=en-EN&sensor=false'
-{% endhighlight %}
-
-
-
-{% highlight r %}
-d = sDrugs %>% mutate(lon = Longitude, lat = Latitude)
-
-
-d$lon <- as.numeric(d$lon)
-d$lat <- as.numeric(d$lat)
-d$Longitude <- as.numeric(d$Longitude)
-d$Latitude <- as.numeric(d$Latitude)
+d$lon <- as.numeric (d$lon)
+d$lat <- as.numeric (d$lat)
+d$Longitude <-  as.numeric (d$Longitude)
+d$Latitude <- as.numeric (d$Latitude)
 
 draw_density_map_of_offenses_for_borough = function(area_map_obj, d) {
     ggmap(area_map_obj, base_layer = ggplot(aes(x = lon, y = lat), data = d)) + 
@@ -153,19 +134,13 @@ draw_density_map_of_offenses_for_borough = function(area_map_obj, d) {
 }
 
 draw_density_map_of_offenses_for_borough(mapImageData2, d)
-{% endhighlight %}
 
-
-
-{% highlight text %}
-## Error in ggmap(area_map_obj, base_layer = ggplot(aes(x = lon, y = lat), : object 'mapImageData2' not found
-{% endhighlight %}
+```
 
 
 ## google maps 2 
 
-
-{% highlight r %}
+```{r, tidy=T}
 library(htmlwidgets)
 library(leaflet)
 
@@ -181,15 +156,11 @@ showmap = function(dataset) {
   }
 
   showmap(sDrugs)
-{% endhighlight %}
+  
+```
 
-![plot of chunk unnamed-chunk-4](/figures/unnamed-chunk-4-1.png)
-
-
-{% highlight r %}
+```{r, tidy=T}
 d <- diamonds[sample(nrow(diamonds), 500), ]
-plot_ly(d, x = carat, y = price, text = paste("Clarity: ", clarity), mode = "markers", 
-    color = carat, size = carat)
-{% endhighlight %}
-
-![plot of chunk unnamed-chunk-5](/figures/unnamed-chunk-5-1.png)
+plot_ly(d, x = carat, y = price, text = paste("Clarity: ", clarity),
+        mode = "markers", color = carat, size = carat)
+```

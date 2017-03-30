@@ -93,9 +93,6 @@ KnitPost <- function(bashwd = "", convert_file = "", overwrite = FALSE) {
       for (i in 1:dim(files.rmd)[1]) {
          # only re-knit if overwrite==TRUE or .md not already existing
          if (files.rmd$md.render[i] == TRUE) {
-         # message(paste0 (".brocks brocks ............................ ",  basename(files.rmd$rmd[i]) ) )
-         #  brocks::htmlwidgets_deps(basename(files.rmd$rmd[i]) , always = TRUE)
-
             # KNITTING ====
             message(paste0("=== KnitPost(overwrite=", overwrite, "): ",
                            basename(files.rmd$rmd[i])))
@@ -106,19 +103,9 @@ KnitPost <- function(bashwd = "", convert_file = "", overwrite = FALSE) {
                   quiet = TRUE)
          }
       }
-       
    } else {
       # convert a single Rmd file to markdown
       # setwd to bash pwd
-
-         local({
-  # Your existing configurations...
-  # See https://github.com/yihui/knitr-jekyll/blob/gh-pages/build.R
-  convert.path <- paste0(bashwd, "/", convert_file)
-
-})
-
-
       setwd(bashwd)
       convert.path <- paste0(bashwd, "/", convert_file)
       md.path <-
@@ -133,13 +120,14 @@ KnitPost <- function(bashwd = "", convert_file = "", overwrite = FALSE) {
             output = md.path,
             envir = parent.frame(),
             quiet = TRUE)
-
-
-
-
    }
 #aniadido 
 
+   local({
+  # Your existing configurations...
+  # See https://github.com/yihui/knitr-jekyll/blob/gh-pages/build.R
+  brocks::htmlwidgets_deps(convert_file)
+})
 
 }
 

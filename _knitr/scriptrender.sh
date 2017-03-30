@@ -6,7 +6,7 @@ function show_help {
     echo ""
     echo "-c   convert all _knitr/*.Rmd files to _posts/*.md (does not overwrite existing md)"
     echo "-o   overwrite existing *.md files"
-   echo "-f   convert '~/jekyll/chepec/_knitr/<filename>.Rmd' to md in _posts"
+   echo "-f   convert '~/git/davidmsoto.github.io/_knitr/<filename>.Rmd' to md in _posts"
     echo "-b   build the jekyll site"
     echo "-s   send changes to live dir"
     echo "-h   show this help"
