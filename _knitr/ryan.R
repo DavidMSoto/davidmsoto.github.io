@@ -1,5 +1,5 @@
 # Input the filename, update this for every blog post ----
-filename <- "moderndata.Rmd"
+filename <- "simple_crimes_01.Rmd"
 
 #
 
