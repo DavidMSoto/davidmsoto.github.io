@@ -1,0 +1,198 @@
+---
+title: 'modernd data ft historical data '
+author: "David M soto (davidmontesoto@gmail.com)"
+date: "oct 17, 2016"
+comments: yes
+description: eda ft historical data
+layout: splash
+share: yes
+tags:
+- sample post
+- code
+- highlighting
+category: Sample-Posts
+htmlwidgets: TRUE
+output: html_document
+---
+
+
+## economist inspired
+
+```{r setup}
+library(plotly)
+library(zoo)
+
+# Trends Data
+trends <- read.csv("https://cdn.rawgit.com/plotly/datasets/master/Move%20to%20Canada.csv", check.names = F, stringsAsFactors = F)
+trends.zoo <- zoo(trends[,-1], order.by = as.Date(trends[,1], format = "%d/%m/%Y"))
+trends.zoo <- aggregate(trends.zoo, as.yearmon, mean)
+
+trends <- data.frame(Date = index(trends.zoo),
+                     coredata(trends.zoo))
+
+# Immigration Data
+immi <- read.csv("https://cdn.rawgit.com/plotly/datasets/master/Canada%20Immigration.csv", stringsAsFactors = F)
+
+labels <- format(as.yearmon(trends$Date), "%Y")
+labels <- as.character(sapply(labels, function(x){
+  unlist(strsplit(x, "20"))[2]
+}))
+
+test <- labels[1]
+for(i in 2:length(labels)){
+  if(labels[i] == test) {
+    labels[i] <- ""
+  }else{
+    test <- labels[i]
+  }
+}
+labels[1] <- "2004"
+hovertext1 <- paste0("Date:<b>", trends$Date, "</b><br>",
+                     "From US:<b>", trends$From.US, "</b><br>")
+
+hovertext2 <- paste0("Date:<b>", trends$Date, "</b><br>",
+                     "From Britain:<b>", trends$From.Britain, "</b><br>")
+
+
+p <- plot_ly(data = trends, x = ~Date) %>%
+
+  # Time series chart
+
+  add_lines(y = ~From.US, line = list(color = "#00526d", width = 4),
+            hoverinfo = "text", text = hovertext1, name = "From US") %>%
+
+  add_lines(y = ~From.Britain, line = list(color = "#de6e6e", width = 4),
+            hoverinfo = "text", text = hovertext2, name = "From Britain") %>%
+
+  add_markers(x = c(as.yearmon("2004-11-01"), as.yearmon("2016-03-01")),
+              y = c(24, 44),
+              marker = list(size = 15, color = "#00526d"),
+              showlegend = F) %>%
+
+  add_markers(x = c(as.yearmon("2008-07-01"), as.yearmon("2016-07-01")),
+              y = c(27, 45),
+              marker = list(size = 15, color = "#de6e6e"),
+              showlegend = F) %>%
+
+  # Markers for legend
+  add_markers(x = c(as.yearmon("2005-01-01"), as.yearmon("2005-01-01")),
+              y = c(40, 33.33),
+              marker = list(size = 15, color = "#00526d"),
+              showlegend = F) %>%
+
+  add_markers(x = c(as.yearmon("2005-01-01"), as.yearmon("2005-01-01")),
+              y = c(36.67, 30),
+              marker = list(size = 15, color = "#de6e6e"),
+              showlegend = F) %>%
+
+  add_text(x = c(as.yearmon("2004-11-01"), as.yearmon("2016-03-01")),
+           y = c(24, 44),
+           text = c("<b>1</b>", "<b>3</b>"),
+           textfont = list(color = "white", size = 8),
+           showlegend = F) %>%
+
+  add_text(x = c(as.yearmon("2008-07-01"), as.yearmon("2016-07-01")),
+           y = c(27, 45),
+           text = c("<b>2</b>", "<b>4</b>"),
+           textfont = list(color = "white", size = 8),
+           showlegend = F) %>%
+
+  # Text for legend
+  add_text(x = c(as.yearmon("2005-01-01"), as.yearmon("2005-01-01"), as.yearmon("2005-01-01"), as.yearmon("2005-01-01")),
+           y = c(40, 36.67, 33.33, 30),
+           text = c("<b>1</b>", "<b>2</b>", "<b>3</b>", "<b>4</b>"),
+           textfont = list(color = "white", size = 8),
+           showlegend = F) %>%
+
+  # Bar chart
+  add_bars(data = immi, x = ~Year, y = ~USA, yaxis = "y2", xaxis = "x2", showlegend = F,
+           marker = list(color = "#00526d"), name = "USA") %>%
+
+  add_bars(data = immi, x = ~Year, y = ~UK, yaxis = "y2", xaxis = "x2", showlegend = F,
+           marker = list(color = "#de6e6e"), name = "UK") %>%
+
+  layout(legend = list(x = 0.8, y = 0.36, orientation = "h", font = list(size = 10),
+                       bgcolor = "transparent"),
+
+         yaxis = list(domain = c(0.4, 0.95), side = "right", title = "", ticklen = 0,
+                      gridwidth = 2),
+
+         xaxis = list(showgrid = F, ticklen = 4, nticks = 100,
+                      ticks = "outside",
+                      tickmode = "array",
+                      tickvals = trends$Date,
+                      ticktext = labels,
+                      tickangle = 0,
+                      title = ""),
+
+         yaxis2 = list(domain = c(0, 0.3), gridwidth = 2, side = "right"),
+         xaxis2 = list(anchor = "free", position = 0),
+
+         # Annotations
+         annotations = list(
+           list(xref = "paper", yref = "paper", xanchor = "left", yanchor = "right",
+                x = 0, y = 1, showarrow = F,
+                text = "<b>Your home and native land?</b>",
+                font = list(size = 18, family = "Balto")),
+
+           list(xref = "paper", yref = "paper", xanchor = "left", yanchor = "right",
+                x = 0, y = 0.95, showarrow = F,
+                align = "left",
+                text = "<b>Google search volume for <i>'Move to Canada'</i></b><br><sup>100 is peak volume<br><b>Note</b> that monthly averages are used</sup>",
+                font = list(size = 13, family = "Arial")),
+
+           list(xref = "plot", yref = "plot", xanchor = "left", yanchor = "right",
+                x = as.yearmon("2005-03-01"), y = 40, showarrow = F,
+                align = "left",
+                text = "<b>George W. Bush is re-elected</b>",
+                font = list(size = 12, family = "Arial"),
+                bgcolor = "white"),
+
+           list(xref = "plot", yref = "plot", xanchor = "left", yanchor = "right",
+                x = as.yearmon("2005-03-01"), y = 36.67, showarrow = F,
+                align = "left",
+                text = "<b>Canadian minister visits Britain, ecourages skilled workers to move</b>",
+                font = list(size = 12, family = "Arial"),
+                bgcolor = "white"),
+
+           list(xref = "plot", yref = "plot", xanchor = "left", yanchor = "right",
+                x = as.yearmon("2005-03-01"), y = 33.33, showarrow = F,
+                align = "left",
+                text = "<b>Super tuesday: Donald Trump wins 7 out of 11 republican primaries</b>",
+                font = list(size = 12, family = "Arial"),
+                bgcolor = "white"),
+
+           list(xref = "plot", yref = "plot", xanchor = "left", yanchor = "right",
+                x = as.yearmon("2005-03-01"), y = 30, showarrow = F,
+                align = "left",
+                text = "<b>Britain votes 52-48% to leave the Europen Union</b>",
+                font = list(size = 12, family = "Arial"),
+                bgcolor = "white"),
+
+           list(xref = "paper", yref = "paper", xanchor = "left", yanchor = "right",
+                x = 0, y = 0.3, showarrow = F,
+                align = "left",
+                text = "<b>Annual immigration to Canada</b>",
+                font = list(size = 12, family = "Arial")),
+
+           list(xref = "paper", yref = "paper", xanchor = "left", yanchor = "right",
+                x = 0, y = -0.07, showarrow = F,
+                align = "left",
+                text = "<b>Source:</b> Google trends and national statistics",
+                font = list(size = 12, family = "Arial")),
+
+           list(xref = "paper", yref = "paper", xanchor = "left", yanchor = "right",
+                x = 0.85, y = 0.98, showarrow = F,
+                align = "left",
+                text = 'Inspired by <a href = "http://www.economist.com/blogs/graphicdetail/2016/07/daily-chart">The economist</a>',
+                font = list(size = 12, family = "Arial"))),
+
+         paper_bgcolor = "#f2f2f2",
+         margin = list(l = 18, r = 30, t = 18),
+         width = 1024,height = 600)
+
+htmltools::tagList(list(p, p))
+
+
+```
+

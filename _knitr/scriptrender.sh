@@ -1,12 +1,13 @@
-#!/bin/bash
+#!/usr/bin/env Rscript
 
-function show_help {
+function show_help 
+{
    echo "Usage: buildsite.sh [OPTION]..."
     echo "Knit posts, rebuild jekyll blog <chepec>"
     echo ""
     echo "-c   convert all _knitr/*.Rmd files to _posts/*.md (does not overwrite existing md)"
     echo "-o   overwrite existing *.md files"
-   echo "-f   convert '~/git/davidmsoto.github.io/_knitr/<filename>.Rmd' to md in _posts"
+   echo "-f   convert '~/dataScience/davidmsoto.github.io/_knitr/<filename>.Rmd' to md in _posts"
     echo "-b   build the jekyll site"
     echo "-s   send changes to live dir"
     echo "-h   show this help"
@@ -70,9 +71,9 @@ shift $((OPTIND-1))
 if [ "$convert" = true ] ; then
     echo ">>>> jc: Converting RMarkdown to Markdown (overwrite = $overwrite_md)"
     if [ "$overwrite_md" = true ] ; then
-        Rscript -e "source('~/git/davidmsoto.github.io/_knitr/render_post.R'); KnitPost(overwrite=TRUE)"
+        Rscript -e "source('~/dataScience/davidmsoto.github.io/_knitr/render_post.R'); KnitPost(overwrite=TRUE)"
     else
-        Rscript -e "source('~/git/davidmsoto.github.io/_knitr/render_post.R'); KnitPost()"
+        Rscript -e "source('~/dataScience/davidmsoto.github.io/_knitr/render_post.R'); KnitPost()"
     fi
 fi
 
@@ -81,7 +82,7 @@ fi
 if [ "$convert_file" = true ] ; then
    # check that $rmdfile exists
    if [ -f $rmdfile ]; then  
-      Rscript -e "source('~/git/davidmsoto.github.io/_knitr/render_post.R'); KnitPost(bashwd='$bashpwd',convert_file='$rmdfile')"
+      Rscript -e "source('~/dataScience/davidmsoto.github.io/_knitr/render_post.R'); KnitPost(bashwd='$bashpwd',convert_file='$rmdfile')"
    else
       show_help
       exit 0

@@ -1,0 +1,133 @@
+---
+title: 'eda ft historical data '
+author: "David M soto (davidmontesoto@gmail.com)"
+date: "oct 17, 2016"
+comments: yes
+description: eda ft historical data
+layout: splash
+share: yes
+tags:
+- sample post
+- code
+- highlighting
+category: Sample-Posts
+---
+
+# objetivo
+ahora que tenemos los datos vamos a explorarlos con varias librerias de 
+https://timelyportfolio.github.io/rCharts_time_series/history.html
+
+
+```{r sectors } 
+rm(list = ls())
+
+setwd("~/dataScience/blog/mfunds/")
+selected <- readRDS("./input/selected50.rds") 
+unique(selected$Mcategory)
+
+```
+
+#EDA for sectors
+https://moderndata.plot.ly/time-series-charts-by-the-economist-in-r-using-plotly/
+
+```{r fundsbySector } 
+GCB <- dplyr::filter(selected,  Mcategory == "Global Equity Income")
+unique(GCB$isin)
+```
+
+
+```{r fundsbySectorPlot} 
+
+library(plotly)
+
+p <- plot_ly() %>% 
+  add_trace(data=dplyr::filter(selected,  isin == "GB00BYSYZL73"),
+            x = ~date, y = ~Close, type="scatter", mode="lines", name = "GB00BYSYZL73") %>% 
+  
+  add_trace(data=dplyr::filter(selected,  isin == "GB00B7778087"),
+            x = ~date, y = ~Close, type="scatter", mode = "lines" , name = "GB00B7778087") %>% 
+  
+  add_trace(data=dplyr::filter(selected,  isin == "GB00B7GJPN73"),
+            x = ~date, y = ~Close, type="scatter", mode = "lines" , name = "GB00B7GJPN73") %>% 
+  
+print(p)
+
+```
+
+
+
+```{r GB00B1XFGM25ema} 
+
+library(TTR) #  SMA() for calculating simple moving average
+Precious <- dplyr::filter(selected,  Mcategory == "Sector Equity Precious Metals")
+unique(Precious$isin)
+
+GB00B1XFGM25 <- dplyr::filter(selected,  isin == "GB00B1XFGM25")
+
+GB00B1XFGM25$SMA26 <- SMA(GB00B1XFGM25$Close, 26)
+GB00B1XFGM25$SMA12 <- SMA(GB00B1XFGM25$Close, 12)
+GB00B1XFGM25$SMA200 <- SMA(GB00B1XFGM25$Close, 200)
+
+
+
+GB00B1XFGM25[1:735,13] <-GB00B1XFGM25[26:760,10]
+GB00B1XFGM25 [1:749,14] <-GB00B1XFGM25[12:760,11]
+GB00B1XFGM25[1:561,15]<-GB00B1XFGM25[200:760,12]
+
+GB00B1XFGM25[10:12] <-GB00B1XFGM25[13:15]
+
+GB00B1XFGM25[13:15] <- NULL
+
+p <-plot_ly() %>% 
+  add_trace(data= GB00B1XFGM25,
+            x = ~date, y = ~Close, type="scatter", mode="lines", name = "GB00B1XFGM25") %>% 
+  add_trace(x = ~date,y = ~SMA26, type="scatter", mode="lines", name = "SMA26") %>% 
+ add_trace(x = ~date,y = ~SMA12, type="scatter", mode="lines", name = "SMA12") %>% 
+   add_trace(x = ~date,y = ~SMA200, type="scatter", mode="lines", name = "SMA200") 
+
+p
+ 
+```
+
+
+https://www.datacamp.com/community/tutorials/r-trading-tutorial
+
+```{r dygraph} 
+
+
+library(dygraphs)
+library(lubridate)
+library(xts)
+
+GB00B1XFGM25 <- dplyr::filter(selected,  isin == "GB00B1XFGM25")
+
+x <- xts( GB00B1XFGM25$Close ,GB00B1XFGM25$date)
+
+
+dygraph(x, main = "TWTR Stock Price") 
+
+
+
+mov.avgs<-function(stock.df){
+  stock.close<-stock.df[,1]
+  ifelse((nrow(stock.df)<(2*260)),
+         x<-data.frame(stock.df, 'NA', 'NA'),
+         x<-data.frame(stock.df, SMA(stock.close, 200), SMA(stock.close, 50)))
+  colnames(x)<-c(names(stock.df), 'sma_200','sma_50')
+  x<-x[complete.cases(x$sma_200),]
+  return(x)
+}
+
+
+library(pbapply)
+
+stocksTS <- pblapply(x, mov.avgs)
+
+
+dygraph(stocksTS[[1]][,c('sma_200','sma_50')],main = 'Moving Averages') %>%
+  dySeries('sma_50', label = 'sma 50') %>%
+  dySeries('sma_200', label = 'sma 200')  %>% dyRangeSelector(height = 30) %>%
+dyShading(from = '2016-4-28', to = '2016-7-27', color = '#CCEBD6') %>%
+ dyShading(from = '2016-7-28', to = '2016-12-30', color = '#FFE6E6')
+
+```

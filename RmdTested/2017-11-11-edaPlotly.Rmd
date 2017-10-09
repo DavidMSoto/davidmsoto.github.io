@@ -1,0 +1,58 @@
+---
+title: 'eda ft historical data '
+author: "David M soto (davidmontesoto@gmail.com)"
+date: "oct 17, 2016"
+comments: yes
+description: eda ft historical data
+layout: splash
+share: yes
+tags:
+- sample post
+- code
+- highlighting
+category: Sample-Posts
+htmlwidgets: TRUE
+output: html_document
+---
+
+# objetivo fffff
+ahora que tenemos los datos vamos a explorarlos con varias librerias de 
+https://timelyportfolio.github.io/rCharts_time_series/history.html
+
+
+```{r sectors } 
+rm(list = ls())
+
+setwd("~/dataScience/blog/mfunds/")
+selected <- readRDS("./input/selected50.rds") 
+unique(selected$Mcategory)
+
+```
+
+#EDA for sectors
+https://moderndata.plot.ly/time-series-charts-by-the-economist-in-r-using-plotly/
+
+```{r fundsbySector } 
+GCB <- dplyr::filter(selected,  Mcategory == "Global Equity Income")
+
+```
+
+
+```{r fundsby} 
+
+library(plotly)
+
+p <- plot_ly() %>% 
+  add_trace(data=dplyr::filter(selected,  isin == "GB00BYSYZL73"),
+            x = ~date, y = ~Close, type="scatter", mode="lines", name = "GB00BYSYZL73") %>% 
+  
+  add_trace(data=dplyr::filter(selected,  isin == "GB00B7778087"),
+            x = ~date, y = ~Close, type="scatter", mode = "lines" , name = "GB00B7778087") %>% 
+  
+  add_trace(data=dplyr::filter(selected,  isin == "GB00B7GJPN73"),
+            x = ~date, y = ~Close, type="scatter", mode = "lines" , name = "GB00B7GJPN73")
+  
+htmltools::tagList(list(p, p))
+
+```
+

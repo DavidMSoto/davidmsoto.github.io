@@ -24,7 +24,7 @@ local({
     # you may want to adapt them to your own website
     knitr::opts_chunk$set(fig.path = sprintf('%s/', gsub('^.+/', '', d)))
     knitr::opts_knit$set(
-      base.dir = '/Users/davidmonteagudo/git/davidmsoto.github.io',
+      base.dir = '~/dataScience/davidmsoto.github.io',
       base.url = 'https://davidmsoto.github.io'
     )
 

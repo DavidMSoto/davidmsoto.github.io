@@ -1,0 +1,166 @@
+---
+layout: splash
+title: "sins in London"
+author: "David M soto (davidmontesoto@gmail.com)"
+date: "oct 17, 2016"
+description: "london experiment."
+category: Sample-Posts
+tags: [sample post, code, highlighting]
+comments: true
+share: true
+
+
+header:
+  image: /assets/images/truedetective.jpg
+
+
+---
+
+
+## crime figures revealed (metropolitan police)
+
+provided by:  [here](https://data.police.uk/data/)
+
+
+```{r, eval=T, message=F, warning=F}
+rm(list = ls())
+
+library(data.table)
+library(ggplot2) # graph
+library(plotly)  # grapgh
+library(tidyr)   #separate
+library(dplyr)#select
+
+WIN <- FALSE
+if (WIN) {setwd("c:/repos/repo/crime/code/")} else{setwd("~/dataScience/projects/repo/crime/code/")}
+
+
+readData <- function(path.name, file.name,  missing.types, types) {
+  fread(  paste(path.name, file.name, sep="") , 
+            colClasses=types,
+            na.strings=missing.types, 
+          verbose = FALSE, showProgress = FALSE )
+}
+
+types <- c(
+'Crime ID'             ='character',
+'Month'                ='character', 
+'Reported by'          ='NULL',
+'Falls within'         ='NULL',
+'Longitude'            ='integer',   
+'Latitude'             ='integer',    
+'Location'             ='character',   
+'LSOA code'            ='character',
+'LSOA name'            ='character',
+'Crime type'           ='character',
+'Last outcome category'='character',
+'Context'              ='NULL'
+
+)
+
+
+missing.types <- c("NA", "")
+
+crime.raw <- readData('../input/', "metropolitan_2016.csv",   missing.types,types  )
+
+names(crime.raw) <- c( "CrimeID",  "Month",  "Longitude",  "Latitude", "Location",    "LSOAcode",   "LSOAname",  "Crimetype", "Lastoutcomecategory")
+```
+    
+
+#data cleaning 
+
+
+```{r, tidy=T}
+
+row.has.na <- apply(crime.raw, 1, function(x){any(is.na(x))})
+crime.raw.void <- crime.raw[row.has.na,]
+crime.raw.clean <- crime.raw[!row.has.na,]
+
+require(Amelia)
+missmap(crime.raw.void, main="crime.raw.void - Missings Map", 
+        col=c("yellow", "black"), legend=FALSE)
+
+dataclean = function(dataset) {
+    
+
+    dataset<-dataset[-which(dataset$Month=="Month"), ] 
+
+    vars <- c("year", "month")
+    dataset <- separate(dataset, Month, into = vars, sep = "-")
+    
+    return(dataset)
+    
+  }
+  
+
+crime.raw.clean = dataclean(crime.raw.clean) # we remove some duplicate headers
+
+```
+
+
+##density map google 
+
+```{r, tidy=T}
+
+sDrugs <- crime.raw.clean  %>% filter( Crimetype == 'Drugs')
+
+require(ggmap)
+
+area_map_obj = get_map("LONDON ", zoom = 12, maptype = "toner-background",  source = "stamen")
+satellite =get_map("LONDON", zoom = 12,  source = "google", maptype = "satellite")
+
+
+mapImageData2 <- get_map("LONDON",
+    color = "color",
+    source = "google",
+    maptype = "terrain",
+    zoom = 12)
+
+d = sDrugs %>%     mutate(lon = Longitude, lat = Latitude)
+
+
+d$lon <- as.numeric (d$lon)
+d$lat <- as.numeric (d$lat)
+d$Longitude <-  as.numeric (d$Longitude)
+d$Latitude <- as.numeric (d$Latitude)
+
+draw_density_map_of_offenses_for_borough = function(area_map_obj, d) {
+    ggmap(area_map_obj, base_layer = ggplot(aes(x = lon, y = lat), data = d)) + 
+        stat_density2d(aes(x = lon, y = lat), data = d, color = "blue", alpha = 0.5) + 
+        stat_density2d(aes(x = lon, y = lat, fill = ..level.., alpha = ..level..), 
+            bins = 7, geom = "polygon", alpha = 0.3, contour = T, data = d) + 
+        scale_fill_gradient(low = "green", high = "red") + facet_wrap(~Crimetype, 
+        nrow = 2)
+}
+
+draw_density_map_of_offenses_for_borough(mapImageData2, d)
+
+```
+
+
+## google maps 2 
+
+```{r, tidy=T}
+library(htmlwidgets)
+library(leaflet)
+
+showmap = function(dataset) {
+    library(leaflet)
+    
+    m <- leaflet() %>%
+      addTiles() %>%  # Add default OpenStreetMap map tiles
+      addMarkers(lng=as.integer(dataset$Longitude), lat=as.integer(dataset$Latitude),
+                 popup=dataset$Crimetype,
+                 clusterOptions = markerClusterOptions())
+    m  # Print the map
+  }
+
+  showmap(sDrugs)
+  
+```
+
+```{r, tidy=T}
+d <- diamonds[sample(nrow(diamonds), 500), ]
+plot_ly(d, x = carat, y = price, text = paste("Clarity: ", clarity),
+        mode = "markers", color = carat, size = carat)
+```

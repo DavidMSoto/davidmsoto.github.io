@@ -1,0 +1,25 @@
+---
+layout: splash
+title: "eda simple"
+author: "David M soto (davidmontesoto@gmail.com)"
+date: "oct 17, 2016"
+description: "london experiment."
+category: Sample-Posts
+tags: [sample post, code, highlighting]
+comments: true
+share: true
+htmlwidgets: TRUE
+header:
+  image: /assets/images/truedetective.jpg
+---
+
+
+# objetivo fffff
+
+
+```{r}
+
+library(plotly)
+p <- plot_ly(economics, x = ~date, y = ~unemploy / pop)
+p
+```
